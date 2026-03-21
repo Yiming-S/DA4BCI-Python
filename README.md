@@ -2,7 +2,7 @@
 
 A Unified Framework for Domain Adaptation in EEG-based Brain-Computer Interfaces.
 
-Python port of the [DA4BCI R package](https://github.com/yimingshen-umb/DA4BCI), providing a comprehensive suite of domain adaptation methods tailored for EEG-based BCI applications with a unified interface, evaluation metrics, and visualization tools.
+Python port of the [DA4BCI R package](https://github.com/Yiming-S/DA4BCI), providing a comprehensive suite of domain adaptation methods tailored for EEG-based BCI applications with a unified interface, evaluation metrics, and visualization tools.
 
 ## Installation
 
