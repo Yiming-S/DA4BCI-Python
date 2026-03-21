@@ -6,11 +6,30 @@ Python port of the [DA4BCI R package](https://github.com/Yiming-S/DA4BCI), provi
 
 ## Installation
 
+### From GitHub
+
 ```bash
+pip install git+https://github.com/Yiming-S/DA4BCI-Python.git
+```
+
+### From Source (for development)
+
+```bash
+git clone https://github.com/Yiming-S/DA4BCI-Python.git
+cd DA4BCI-Python
 pip install -e ".[dev]"
 ```
 
-**Dependencies**: numpy, scipy, scikit-learn, matplotlib, POT (Python Optimal Transport)
+The `-e` flag installs in editable mode so changes take effect without reinstalling. The `[dev]` extra includes testing dependencies (pytest).
+
+### Requirements
+
+- Python >= 3.9
+- numpy >= 1.21
+- scipy >= 1.7
+- scikit-learn >= 1.0
+- matplotlib >= 3.4
+- [POT](https://pythonot.github.io/) >= 0.8 (Python Optimal Transport)
 
 ## Quick Start
 
