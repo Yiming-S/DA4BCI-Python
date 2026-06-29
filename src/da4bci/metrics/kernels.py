@@ -20,6 +20,10 @@ def rbf_kernel(x, y, sigma, standard_scale=True):
     """
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
+    if x.ndim == 1:
+        x = x[:, None]
+    if y.ndim == 1:
+        y = y[:, None]
     assert x.shape[1] == y.shape[1], "x and y must have the same number of columns"
     assert sigma > 0, "sigma must be positive"
 

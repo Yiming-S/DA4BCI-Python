@@ -33,9 +33,9 @@ def domain_adaptation_coral(source_data, target_data, lam=1e-5):
         L_s = np.linalg.cholesky(np.linalg.inv(cov_source))
     except np.linalg.LinAlgError:
         L_s = np.linalg.cholesky(np.linalg.pinv(cov_source))
-    # R uses upper-triangular Cholesky; numpy gives lower-triangular.
-    # R's chol(A) = upper = L^T, and source %*% chol(inv(Cs)) means right-multiply by upper.
-    chol_s = L_s.T  # upper triangular
+    # Right-multiply whitening: cov(Xs @ M) = M.T cov_s M = I requires M M.T =
+    # inv(cov_s) = L_s L_s.T, i.e. M = L_s (the lower factor) — NOT L_s.T.
+    chol_s = L_s
 
     # Recolor: chol(cov_target)
     try:

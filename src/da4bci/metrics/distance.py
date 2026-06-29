@@ -13,15 +13,20 @@ def compute_distance_matrix(source, target, eps=1e-12):
     """
     source = np.asarray(source, dtype=float)
     target = np.asarray(target, dtype=float)
+    if source.ndim == 1:
+        source = source[:, None]
+    if target.ndim == 1:
+        target = target[:, None]
 
     cross_term = source @ target.T
     source_norms = np.sum(source ** 2, axis=1)
     target_norms = np.sum(target ** 2, axis=1)
 
     d2 = source_norms[:, None] + target_norms[None, :] - 2.0 * cross_term
-    # Clamp tiny negatives
-    d2 = np.where((d2 > -eps) & (d2 < 0), 0.0, d2)
-    d2 = np.where(d2 < -eps, np.nan, d2)
+    # A squared Euclidean distance is non-negative; any negative value here is a
+    # floating-point cancellation artifact (which grows with coordinate
+    # magnitude), so clamp to 0 rather than turning a real distance into NaN.
+    d2 = np.maximum(d2, 0.0)
 
     return np.sqrt(d2)
 
@@ -155,13 +160,18 @@ def compute_mahalanobis(source, target, cov_choice="pooled",
     """
     source = np.asarray(source, dtype=float)
     target = np.asarray(target, dtype=float)
+    if source.ndim == 1:
+        source = source[:, None]
+    if target.ndim == 1:
+        target = target[:, None]
     if source.shape[1] != target.shape[1]:
         raise ValueError("source and target must have the same number of columns")
 
     mu_x = source.mean(axis=0)
     mu_y = target.mean(axis=0)
-    Sx = np.cov(source, rowvar=False, ddof=1)
-    Sy = np.cov(target, rowvar=False, ddof=1)
+    # atleast_2d so a single feature (p=1) gives a (1,1) covariance, not a 0-d scalar.
+    Sx = np.atleast_2d(np.cov(source, rowvar=False, ddof=1))
+    Sy = np.atleast_2d(np.cov(target, rowvar=False, ddof=1))
 
     nx, p = source.shape
     ny = target.shape[0]

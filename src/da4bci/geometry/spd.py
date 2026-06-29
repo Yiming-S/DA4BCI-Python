@@ -305,8 +305,11 @@ def compute_geodesic(source, target, d=None):
     p = source.shape[1]
 
     if d is None:
-        d_source = np.linalg.matrix_rank(source)
-        d_target = np.linalg.matrix_rank(target)
+        # Rank of the CENTERED data, to match the centered basis built below
+        # (centering drops one degree of freedom; using the uncentered rank would
+        # pull a zero-singular-value noise direction into the subspace).
+        d_source = np.linalg.matrix_rank(source - source.mean(axis=0))
+        d_target = np.linalg.matrix_rank(target - target.mean(axis=0))
         d = min(d_source, d_target)
     else:
         d = int(d)

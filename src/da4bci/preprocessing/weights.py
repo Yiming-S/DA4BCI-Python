@@ -60,4 +60,10 @@ def kmm_weights(Xs, Xt, sigma=None, B=100, eps=None):
                       constraints=constraints, method="SLSQP",
                       options={"maxiter": 1000})
 
+    if not result.success:
+        import warnings
+        warnings.warn(
+            f"kmm_weights: SLSQP did not converge ({result.message}); the "
+            "returned weights may be the unadjusted initial guess.", RuntimeWarning)
+
     return np.clip(result.x, 0, B)

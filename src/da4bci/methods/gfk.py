@@ -34,7 +34,8 @@ def domain_adaptation_gfk(source_data, target_data, dim_subspace=10):
     source_data : ndarray (n_s, p)
     target_data : ndarray (n_t, p)
     dim_subspace : int
-        Subspace dimension k (clamped to p). For a meaningful flow use k < p.
+        Requested subspace dimension; clamped to the usable rank of each domain
+        so few-trial inputs do not crash. For a meaningful flow use k < p.
 
     Returns
     -------
@@ -43,32 +44,40 @@ def domain_adaptation_gfk(source_data, target_data, dim_subspace=10):
     source_data = np.asarray(source_data, dtype=float)
     target_data = np.asarray(target_data, dtype=float)
     p = source_data.shape[1]
-    k = min(dim_subspace, p)
 
     # Scaled PCA subspaces (matching R prcomp scale.=TRUE).
     src = StandardScaler().fit_transform(source_data)
     tgt = StandardScaler().fit_transform(target_data)
     _, _, Vt_s = np.linalg.svd(src, full_matrices=False)
     _, _, Vt_t = np.linalg.svd(tgt, full_matrices=False)
+    # Clamp k to a dimension both domains actually span (avoids shape mismatches
+    # when a domain has <= dim_subspace samples).
+    k = min(dim_subspace, p, Vt_s.shape[0], Vt_t.shape[0])
     Ps = Vt_s[:k].T                      # (p, k) source subspace
     Pt = Vt_t[:k].T                      # (p, k) target subspace
     Rs = orthonormal_complement(Ps)      # (p, p - k) source complement
 
-    # Principal angles between the source and target subspaces.
-    U1, gamma, _ = np.linalg.svd(Ps.T @ Pt)
+    # Principal angles between the source and target subspaces. The complement
+    # rotation U2 MUST be tied to the same right-singular basis V1 as U1 (so the
+    # angles are paired consistently); a separate SVD of Rs.T@Pt would order the
+    # complement directions by descending sine, reversing the pairing.
+    U1, gamma, V1t = np.linalg.svd(Ps.T @ Pt)
+    V1 = V1t.T
     theta = np.arccos(np.clip(gamma, -1.0, 1.0))     # (k,)
     lam1, lam2, lam3 = _flow_diagonals(theta)
 
     PU = Ps @ U1                          # (p, k)
     G = PU @ np.diag(lam1) @ PU.T
 
-    kc = min(k, Rs.shape[1])              # usable complement directions
-    if kc > 0:
-        U2, _, _ = np.linalg.svd(Rs.T @ Pt)
-        RU = Rs @ U2[:, :kc]              # (p, kc)
-        PUc = PU[:, :kc]
-        L2 = np.diag(lam2[:kc])
-        G = G + PUc @ L2 @ RU.T + RU @ L2 @ PUc.T + RU @ np.diag(lam3[:kc]) @ RU.T
+    if Rs.shape[1] > 0:
+        # Columns of B = Rs.T @ Pt @ V1 are (-sin theta_j) * u2_j, matched to
+        # angle j. Normalize per column to recover the complement directions.
+        B = Rs.T @ Pt @ V1                # (p - k, k)
+        norms = np.linalg.norm(B, axis=0)
+        U2 = -B / np.where(norms > 1e-12, norms, 1.0)
+        RU = Rs @ U2                      # (p, k), paired column-for-column with PU
+        L2, L3 = np.diag(lam2), np.diag(lam3)
+        G = G + PU @ L2 @ RU.T + RU @ L2 @ PU.T + RU @ L3 @ RU.T
 
     # Symmetric PSD square root: <X G_half, Y G_half> = X G Y^T (the GFK kernel).
     G = 0.5 * (G + G.T)
