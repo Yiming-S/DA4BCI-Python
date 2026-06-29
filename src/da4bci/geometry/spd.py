@@ -1,5 +1,7 @@
 """SPD geometry: matrix_power, riemannian_mean, log/exp map, LW covariance, etc."""
 
+import warnings
+
 import numpy as np
 from scipy.linalg import eigh, qr, svd
 
@@ -102,6 +104,9 @@ def matrix_power(A, power, eig_eps=1e-6, ridge_eps=1e-6, max_retry=3):
         return np.eye(n)
 
     if not np.all(np.isfinite(A)):
+        warnings.warn(
+            "matrix_power: non-finite input matrix; returning identity "
+            "(the alignment is a silent no-op).", RuntimeWarning)
         return np.eye(n)
 
     # Fast path for inverse via Cholesky
@@ -126,6 +131,9 @@ def matrix_power(A, power, eig_eps=1e-6, ridge_eps=1e-6, max_retry=3):
             ridge *= 10
 
     if vals is None:
+        warnings.warn(
+            "matrix_power: eigendecomposition failed after retries; returning "
+            "identity (the alignment is a silent no-op).", RuntimeWarning)
         return np.eye(n)
 
     vals = np.real(vals)
@@ -306,9 +314,14 @@ def compute_geodesic(source, target, d=None):
             raise ValueError("d must be between 1 and number of columns")
 
     def orthonorm_basis(X, k):
-        X_centered = X - X.mean(axis=0)
-        Q, _ = np.linalg.qr(X_centered)
-        return Q[:, :min(k, Q.shape[1])]
+        # Feature-space principal subspace: the top-k right singular vectors of
+        # the centered data, shape (p, k). This is independent of the number of
+        # samples, so U.T @ V is well-defined even when n_s != n_t (the normal
+        # domain-adaptation case). The previous QR-in-sample-space basis was
+        # (n, k) and crashed whenever n_s != n_t.
+        Xc = X - X.mean(axis=0)
+        _, _, Vt = svd(Xc, full_matrices=False)
+        return Vt[:min(k, Vt.shape[0])].T
 
     U = orthonorm_basis(source, d)
     V = orthonorm_basis(target, d)

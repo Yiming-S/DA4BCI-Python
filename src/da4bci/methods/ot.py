@@ -59,16 +59,17 @@ def domain_adaptation_ot(source_data, target_data, eps=0.05, maxit=500,
         Ktu = np.maximum(Ktu, tiny)
         v = c / Ktu
 
-        P = (u[:, None] * v[None, :]) * K
-
-        residual = max(np.max(np.abs(P.sum(axis=1) - r)),
-                       np.max(np.abs(P.sum(axis=0) - c)))
+        # Marginal residual without materializing the full n*m plan:
+        # the row marginal of P is u * (K @ v), the column marginal is v * (K.T @ u).
+        residual = max(np.max(np.abs(u * (K @ v) - r)),
+                       np.max(np.abs(v * Ktu - c)))
         if not np.isfinite(residual) or residual <= tol:
             break
 
     converged = np.isfinite(residual) and residual <= tol
 
-    # Barycentric mapping
+    # Transport plan (built once) + barycentric mapping
+    P = (u[:, None] * v[None, :]) * K
     rs = P.sum(axis=1)
     rs = np.maximum(rs, tiny)
     Xs_map = (P @ Xt) / rs[:, None]

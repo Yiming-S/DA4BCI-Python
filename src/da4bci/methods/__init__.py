@@ -1,5 +1,7 @@
 """Unified domain adaptation interface."""
 
+import numpy as np
+
 from da4bci.methods.tca import domain_adaptation_tca
 from da4bci.methods.sa import domain_adaptation_sa
 from da4bci.methods.mida import domain_adaptation_mida
@@ -10,6 +12,22 @@ from da4bci.methods.art import domain_adaptation_art
 from da4bci.methods.pt import domain_adaptation_pt
 from da4bci.methods.ot import domain_adaptation_ot
 from da4bci.methods.m3d import domain_adaptation_m3d
+
+
+def _check_2d(source_data, target_data):
+    """Validate that source/target are 2D with matching feature dimension."""
+    s = np.asarray(source_data)
+    t = np.asarray(target_data)
+    if s.ndim != 2 or t.ndim != 2:
+        raise ValueError(
+            "source_data and target_data must be 2D (n_samples, n_features); "
+            f"got shapes {s.shape} and {t.shape}."
+        )
+    if s.shape[1] != t.shape[1]:
+        raise ValueError(
+            "source_data and target_data must have the same number of features; "
+            f"got {s.shape[1]} and {t.shape[1]}."
+        )
 
 
 def domain_adaptation(source_data, target_data, method="sa", control=None):
@@ -30,6 +48,7 @@ def domain_adaptation(source_data, target_data, method="sa", control=None):
     """
     if control is None:
         control = {}
+    _check_2d(source_data, target_data)
 
     valid = ("tca", "sa", "mida", "rd", "coral", "gfk", "art", "pt", "ot", "m3d")
     if method not in valid:

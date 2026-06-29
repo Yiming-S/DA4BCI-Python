@@ -1,5 +1,7 @@
 """Aligned Riemannian Transport (ART)."""
 
+import warnings
+
 import numpy as np
 from da4bci.geometry.spd import LW_covariance, matrix_power, align_riemannian_transport
 
@@ -29,7 +31,10 @@ def domain_adaptation_art(source_data, target_data):
 
     try:
         C_S_aligned = align_riemannian_transport([C_S], [C_T])[0]
-    except Exception:
+    except Exception as e:
+        warnings.warn(
+            f"ART: Riemannian transport failed ({e}); falling back to the target "
+            "covariance (the alignment is effectively a no-op).", RuntimeWarning)
         C_S_aligned = C_T
 
     C_S_inv_sqrt = matrix_power(C_S, -0.5)

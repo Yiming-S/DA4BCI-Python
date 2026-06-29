@@ -8,10 +8,17 @@ version = "0.1.0"
 description = "A Unified Framework for Domain Adaptation in EEG-based BCI"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     { name = "Yiming Shen", email = "yiming.shen001@umb.edu" },
     { name = "David Degras", email = "david.degras@umb.edu" },
+]
+keywords = ["EEG", "BCI", "domain-adaptation", "transfer-learning", "optimal-transport", "riemannian"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
 ]
 dependencies = [
     "numpy>=1.21",
@@ -25,7 +32,12 @@ dependencies = [
 dev = [
     "pytest>=7.0",
     "pytest-cov",
+    "pyflakes",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Yiming-S/DA4BCI-Python"
+Repository = "https://github.com/Yiming-S/DA4BCI-Python"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/da4bci"]

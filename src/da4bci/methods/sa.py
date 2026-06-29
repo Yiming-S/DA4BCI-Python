@@ -1,7 +1,6 @@
 """Subspace Alignment (SA)."""
 
 import numpy as np
-from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 

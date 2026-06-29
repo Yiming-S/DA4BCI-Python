@@ -24,8 +24,6 @@ def domain_adaptation_tca(source_data, target_data, k=10, sigma=1, mu=1):
 
     X = np.vstack([source_data, target_data])
     n_s = source_data.shape[0]
-    n_t = target_data.shape[0]
-    n = n_s + n_t
 
     # RBF kernel
     nrmX = np.sum(X ** 2, axis=1)

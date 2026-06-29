@@ -1,5 +1,7 @@
 """Manifold-based Multi-step Domain Adaptation (M3D)."""
 
+import copy
+
 import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -34,11 +36,20 @@ def domain_adaptation_m3d(source_data, source_labels, target_data,
     source_data = np.asarray(source_data, dtype=float)
     target_data = np.asarray(target_data, dtype=float)
     source_labels = np.asarray(source_labels)
+    if source_labels.shape[0] != source_data.shape[0]:
+        raise ValueError(
+            f"source_labels has length {source_labels.shape[0]} but source_data "
+            f"has {source_data.shape[0]} rows."
+        )
 
     if stage1 is None:
         stage1 = {"method": "tca", "control": {"k": None, "sigma": 1}}
     if stage2 is None:
         stage2 = {"method": "sa", "control": {"k": 10}}
+    # Work on copies so auto-dimensioning never writes back into the caller's
+    # stage dicts (which would freeze the first dataset's k across a reuse loop).
+    stage1 = copy.deepcopy(stage1)
+    stage2 = copy.deepcopy(stage2)
 
     def auto_dim(X, keep=expl_var, cap=max_dim):
         scaler = StandardScaler()
@@ -76,17 +87,12 @@ def domain_adaptation_m3d(source_data, source_labels, target_data,
     Zs1 = da1["weighted_source_data"]
     Zt1 = da1["target_data"]
 
-    # Stage 2
-    if stage2 is not None:
-        da2 = domain_adaptation(Zs1, Zt1,
-                                method=stage2["method"], control=stage2["control"])
-        Zs = da2["weighted_source_data"]
-        Zt = da2["target_data"]
-        K_all = da2.get("K", np.vstack([Zs, Zt]) @ np.vstack([Zs, Zt]).T)
-    else:
-        Zs = Zs1
-        Zt = Zt1
-        K_all = np.vstack([Zs, Zt]) @ np.vstack([Zs, Zt]).T
+    # Stage 2 (stage2 is always defined — defaulted above if not provided).
+    da2 = domain_adaptation(Zs1, Zt1,
+                            method=stage2["method"], control=stage2["control"])
+    Zs = da2["weighted_source_data"]
+    Zt = da2["target_data"]
+    K_all = da2.get("K", np.vstack([Zs, Zt]) @ np.vstack([Zs, Zt]).T)
 
     K_all = center_kernel(K_all)
 
@@ -115,11 +121,12 @@ def domain_adaptation_m3d(source_data, source_labels, target_data,
     Z_all = np.vstack([Zs, Zt])
     M = np.zeros((n_all, n_all))
 
-    for it in range(l_iter):
-        M0 = np.full((n_all, n_all), -1.0 / (n_s * n_t))
-        M0[np.ix_(idx_s, idx_s)] = 1.0 / n_s ** 2
-        M0[np.ix_(idx_t, idx_t)] = 1.0 / n_t ** 2
+    # M0 is loop-invariant — build it once.
+    M0 = np.full((n_all, n_all), -1.0 / (n_s * n_t))
+    M0[np.ix_(idx_s, idx_s)] = 1.0 / n_s ** 2
+    M0[np.ix_(idx_t, idx_t)] = 1.0 / n_t ** 2
 
+    for it in range(l_iter):
         Mc = np.zeros((n_all, n_all))
         for c in range(K_classes):
             S = idx_s[Ysrc[:, c] == 1]

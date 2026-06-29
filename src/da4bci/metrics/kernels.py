@@ -32,7 +32,7 @@ def rbf_kernel(x, y, sigma, standard_scale=True):
     return np.exp(-gamma * D2)
 
 
-def sigma_med(X, Y, m=400, seed=None):
+def sigma_med(X, Y, m=400, seed=0):
     """Median-distance heuristic for RBF bandwidth.
 
     Parameters
@@ -42,6 +42,9 @@ def sigma_med(X, Y, m=400, seed=None):
     m : int
         Max rows to use for pairwise distances.
     seed : int or None
+        Subsampling seed. Defaults to 0 (not None) so the bandwidth — and thus
+        every RBF metric / KMM weight built on it — is reproducible run-to-run
+        and across machines when n1 + n2 > m.
 
     Returns
     -------

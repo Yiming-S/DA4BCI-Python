@@ -42,3 +42,50 @@ from da4bci.metrics.evaluation import (
 from da4bci.plotting import plot_data_comparison
 
 __version__ = "0.1.0"
+
+__all__ = [
+    # Domain-adaptation methods
+    "domain_adaptation",
+    "domain_adaptation_tca",
+    "domain_adaptation_sa",
+    "domain_adaptation_coral",
+    "domain_adaptation_gfk",
+    "domain_adaptation_mida",
+    "domain_adaptation_riemannian",
+    "domain_adaptation_art",
+    "domain_adaptation_pt",
+    "domain_adaptation_ot",
+    "domain_adaptation_m3d",
+    # Metrics
+    "rbf_kernel",
+    "sigma_med",
+    "compute_distance_matrix",
+    "compute_mmd",
+    "compute_energy",
+    "compute_wasserstein",
+    "compute_mahalanobis",
+    # SPD / Riemannian geometry
+    "orthonormal_complement",
+    "LW_covariance",
+    "matrix_power",
+    "riemannian_mean",
+    "log_map",
+    "exp_map",
+    "align_riemannian_transport",
+    "compute_geodesic",
+    # Preprocessing
+    "euclidean_alignment",
+    "kmm_weights",
+    "label_shift_em",
+    # Drift detection
+    "ph_init",
+    "ph_update",
+    # Evaluation
+    "evaluate_shift",
+    "distance_summary",
+    "distanceSummary",
+    "proxy_a_distance",
+    # Plotting
+    "plot_data_comparison",
+    "__version__",
+]
