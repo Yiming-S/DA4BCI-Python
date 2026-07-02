@@ -3,7 +3,7 @@
 **A Unified Framework for Domain Adaptation in EEG-based Brain-Computer Interfaces.**
 
 <p align="center">
-  <img src="DA4BCI.png" alt="DA4BCI overview" width="900">
+  <img src="docs/cover.svg" alt="DA4BCI-Python cover: source and target EEG feature distributions aligned by domain adaptation methods" width="100%">
 </p>
 
 Python implementation of DA4BCI — a comprehensive toolkit of domain adaptation methods, distance metrics, and evaluation tools for EEG-based BCI applications. The package provides a unified interface to align EEG distributions across sessions or subjects, mitigating distributional shift and improving model robustness.
